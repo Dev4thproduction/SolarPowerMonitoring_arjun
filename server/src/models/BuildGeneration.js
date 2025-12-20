@@ -16,6 +16,8 @@ const buildGenerationSchema = new Schema({
     jan: { type: Number, default: 0 },
     feb: { type: Number, default: 0 },
     mar: { type: Number, default: 0 }
-});
+}, { timestamps: true });
+
+buildGenerationSchema.index({ site: 1, year: 1 }, { unique: true });
 
 module.exports = mongoose.model('BuildGeneration', buildGenerationSchema);

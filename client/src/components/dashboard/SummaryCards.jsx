@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Activity, Target, Zap } from 'lucide-react';
 import clsx from 'clsx';
@@ -15,7 +16,6 @@ const Card = ({ title, value, unit, icon: Icon, color, index, subtitle }) => {
                 <div className={clsx("p-3 rounded-lg bg-opacity-10", color)}>
                     <Icon size={24} className={clsx("text-opacity-100", color.replace('bg-', 'text-'))} />
                 </div>
-                {/* Sparkline or extra info could go here */}
             </div>
 
             <div>
@@ -30,20 +30,30 @@ const Card = ({ title, value, unit, icon: Icon, color, index, subtitle }) => {
     );
 };
 
+Card.propTypes = {
+    title: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    unit: PropTypes.string.isRequired,
+    icon: PropTypes.elementType.isRequired,
+    color: PropTypes.string.isRequired,
+    index: PropTypes.number.isRequired,
+    subtitle: PropTypes.node,
+};
+
 const SummaryCards = ({ data }) => {
-    // Aggregate Data
-    const totalActual = data.reduce((acc, curr) => acc + curr.actual, 0);
-    const totalTarget = data.reduce((acc, curr) => acc + curr.target, 0);
+    const { totalActual, totalTarget, overallPR, status } = useMemo(() => {
+        const actual = data.reduce((acc, curr) => acc + (curr.actual || 0), 0);
+        const target = data.reduce((acc, curr) => acc + (curr.target || 0), 0);
 
-    // Calculate Overall PR (Weighted Average could be complex, for simplified dashboard: Total Actual / Total Target)
-    // Or average of monthly PRs? Let's do Total / Total for accuracy over the year.
-    let overallPR = 0;
-    if (totalTarget > 0) overallPR = (totalActual / totalTarget) * 100;
+        let pr = 0;
+        if (target > 0) pr = (actual / target) * 100;
 
-    // Overall Status
-    let status = 'Poor';
-    if (overallPR >= 90) status = 'Excellent';
-    else if (overallPR >= 80) status = 'Good';
+        let s = 'Poor';
+        if (pr >= 90) s = 'Excellent';
+        else if (pr >= 80) s = 'Good';
+
+        return { totalActual: actual, totalTarget: target, overallPR: pr, status: s };
+    }, [data]);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -53,7 +63,7 @@ const SummaryCards = ({ data }) => {
                 value={overallPR.toFixed(1)}
                 unit="%"
                 icon={Activity}
-                color="bg-purple-500" // Purple for PR
+                color="bg-purple-500"
                 subtitle={<span className={clsx(
                     "font-bold",
                     status === 'Excellent' ? "text-green-500" : status === 'Good' ? "text-yellow-500" : "text-red-500"
@@ -66,7 +76,7 @@ const SummaryCards = ({ data }) => {
                 value={totalTarget.toLocaleString()}
                 unit="units"
                 icon={Target}
-                color="bg-blue-500" // Blue for Target
+                color="bg-blue-500"
                 subtitle="Expected Yearly Output"
             />
 
@@ -76,23 +86,11 @@ const SummaryCards = ({ data }) => {
                 value={totalActual.toLocaleString()}
                 unit="units"
                 icon={Zap}
-                color="bg-green-500" // Green for Actual
+                color="bg-green-500"
                 subtitle={`${((totalActual / totalTarget) * 100 || 0).toFixed(1)}% of Target Achieved`}
             />
         </div>
     );
-};
-
-import PropTypes from 'prop-types';
-
-Card.propTypes = {
-    title: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
-    unit: PropTypes.string.isRequired,
-    icon: PropTypes.elementType.isRequired,
-    color: PropTypes.string.isRequired,
-    index: PropTypes.number.isRequired,
-    subtitle: PropTypes.node,
 };
 
 SummaryCards.propTypes = {

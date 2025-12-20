@@ -10,7 +10,8 @@ const Sidebar = () => {
 
     const navItems = [
         { icon: Home, label: 'Dashboard', to: '/' },
-        { icon: BarChart3, label: 'Data Logs', to: '/logs' }, // Changed Analytics to Logs to fit requirements better
+        { icon: Sun, label: 'Manage Sites', to: '/sites' },
+        { icon: BarChart3, label: 'Data Entry', to: '/logs' },
         { icon: Settings, label: 'Settings', to: '/settings' },
     ];
 

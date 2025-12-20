@@ -1,79 +1,130 @@
-import React from 'react';
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
-import { ChevronDown, Calendar, MapPin } from 'lucide-react';
+import { ChevronDown, Calendar, MapPin, Search } from 'lucide-react';
+import clsx from 'clsx';
 
-const DashboardControls = ({ selectedSite, onSiteChange, selectedYear, onYearChange }) => {
-    // Fetch Sites
+const DashboardControls = ({
+    selectedSite, onSiteChange,
+    selectedYear, onYearChange,
+    dateRange, onDateRangeChange,
+    viewMode, onViewModeChange
+}) => {
     const { data: sites = [], isLoading } = useQuery({
         queryKey: ['sites'],
-        queryFn: async () => {
-            const res = await api.get('/sites');
-            return res.data;
-        },
-        staleTime: 5 * 60 * 1000 // 5 minutes
+        queryFn: () => api.get('/sites').then(res => res.data)
     });
 
-    // Generate Year Options (Current year +/- 2 years)
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
     return (
-        <div className="flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-xl border shadow-sm">
-            {/* Site Selector */}
-            <div className="relative min-w-[200px]">
-                <label className="text-xs text-muted-foreground font-medium mb-1 block flex items-center gap-1">
-                    <MapPin size={12} />
-                    Select Site
+        <div className="flex flex-col lg:flex-row gap-4 bg-card p-4 rounded-2xl border shadow-lg shadow-primary/5">
+            {/* Site Picker */}
+            <div className="relative min-w-[220px]">
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block flex items-center gap-1.5 ml-1">
+                    <MapPin size={10} className="text-primary" />
+                    Solar Installation
                 </label>
-                <div className="relative">
+                <div className="relative group">
                     <select
                         value={selectedSite || ''}
                         onChange={(e) => onSiteChange(e.target.value)}
                         disabled={isLoading}
-                        className="w-full appearance-none bg-background border px-4 py-2.5 rounded-lg pr-10 focus:ring-2 focus:ring-primary outline-none transition-all"
+                        className="w-full appearance-none bg-muted/30 border border-muted-foreground/10 px-4 py-3 rounded-xl pr-10 focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all font-medium cursor-pointer hover:bg-muted/50"
                     >
-                        <option value="" disabled>-- Select a Site --</option>
+                        <option value="" disabled>-- Select Site --</option>
                         {sites.map(site => (
                             <option key={site._id} value={site._id}>
-                                {site.siteName} (Cap: {site.capacity} kWp)
+                                {site.siteName} ({site.capacity} kWp)
                             </option>
                         ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={16} />
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" size={16} />
                 </div>
             </div>
 
-            {/* Year Selector */}
-            <div className="relative min-w-[120px]">
-                <label className="text-xs text-muted-foreground font-medium mb-1 block flex items-center gap-1">
-                    <Calendar size={12} />
-                    Fiscal Year
-                </label>
-                <div className="relative">
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => onYearChange(parseInt(e.target.value))}
-                        className="w-full appearance-none bg-background border px-4 py-2.5 rounded-lg pr-10 focus:ring-2 focus:ring-primary outline-none transition-all"
+            <div className="h-px lg:h-12 lg:w-px bg-muted-foreground/10 self-center" />
+
+            {/* View Mode & Time Pickers */}
+            <div className="flex flex-col sm:flex-row items-end gap-4 flex-1">
+                {/* Mode Toggle */}
+                <div className="flex bg-muted/30 p-1 rounded-xl border border-muted-foreground/5 w-full sm:w-auto">
+                    <button
+                        onClick={() => onViewModeChange('year')}
+                        className={clsx(
+                            "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
+                            viewMode === 'year' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        )}
                     >
-                        {years.map(year => (
-                            <option key={year} value={year}>{year} - {year + 1}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={16} />
+                        <Calendar size={14} /> Fiscal Year
+                    </button>
+                    <button
+                        onClick={() => onViewModeChange('range')}
+                        className={clsx(
+                            "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
+                            viewMode === 'range' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        <Calendar size={14} /> Custom Range
+                    </button>
                 </div>
+
+                {viewMode === 'year' ? (
+                    <div className="relative min-w-[140px] w-full sm:w-auto">
+                        <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block flex items-center gap-1.5 ml-1">
+                            Current Period
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => onYearChange(parseInt(e.target.value))}
+                                className="w-full appearance-none bg-muted/30 border border-muted-foreground/10 px-4 py-3 rounded-xl pr-10 focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all font-bold hover:bg-muted/50"
+                            >
+                                {years.map(year => (
+                                    <option key={year} value={year}>{year} - {year + 1}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" size={16} />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-40">
+                            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block ml-1">From Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.start}
+                                onChange={e => onDateRangeChange({ ...dateRange, start: e.target.value })}
+                                className="w-full bg-muted/30 border border-muted-foreground/10 px-3 py-2.5 rounded-xl focus:ring-2 focus:ring-primary/40 outline-none font-medium appearance-none"
+                            />
+                        </div>
+                        <div className="relative flex-1 sm:w-40">
+                            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block ml-1">To Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.end}
+                                onChange={e => onDateRangeChange({ ...dateRange, end: e.target.value })}
+                                className="w-full bg-muted/30 border border-muted-foreground/10 px-3 py-2.5 rounded-xl focus:ring-2 focus:ring-primary/40 outline-none font-medium appearance-none"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
-
-import PropTypes from 'prop-types';
 
 DashboardControls.propTypes = {
     selectedSite: PropTypes.string,
     onSiteChange: PropTypes.func.isRequired,
     selectedYear: PropTypes.number.isRequired,
     onYearChange: PropTypes.func.isRequired,
+    dateRange: PropTypes.object.isRequired,
+    onDateRangeChange: PropTypes.func.isRequired,
+    viewMode: PropTypes.string.isRequired,
+    onViewModeChange: PropTypes.func.isRequired,
 };
 
 export default DashboardControls;

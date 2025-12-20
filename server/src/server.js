@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
+const compression = require('compression');
 require('dotenv-safe').config(); // Enforces .env variables
 
 const { Site, BuildGeneration, DailyGeneration } = require('./models');
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 // Security & Utility Middleware
 app.use(helmet());
 app.use(cors());
+app.use(compression()); // Compress all responses
 app.use(express.json());
 
 // API Routes
