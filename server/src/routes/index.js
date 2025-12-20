@@ -30,6 +30,8 @@ router.post('/build-generation', protect, restrictTo('ADMIN', 'OPERATOR'), valid
 // Daily Generation Routes
 router.get('/daily-generation/:siteId', protect, dailyGenerationController.getDailyGeneration);
 router.post('/daily-generation', protect, restrictTo('ADMIN', 'OPERATOR'), validate(dailyGenerationSchema), dailyGenerationController.addDailyGeneration);
+router.put('/daily-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), dailyGenerationController.updateDailyGeneration);
+router.delete('/daily-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), dailyGenerationController.deleteDailyGeneration);
 
 // Dashboard Routes
 router.get('/dashboard', protect, dashboardController.getDashboardData);

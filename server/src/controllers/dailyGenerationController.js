@@ -4,7 +4,19 @@ const { DailyGeneration, BuildGeneration, Alert } = require('../models');
 exports.getDailyGeneration = async (req, res) => {
     try {
         const { siteId } = req.params;
-        const data = await DailyGeneration.find({ site: siteId }).sort({ date: -1 });
+        const { startDate, endDate } = req.query;
+
+        let query = { site: siteId };
+
+        // Add date range filter if provided
+        if (startDate && endDate) {
+            query.date = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
+
+        const data = await DailyGeneration.find(query).sort({ date: -1 });
         res.json(data);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -16,11 +28,6 @@ exports.getDailyGeneration = async (req, res) => {
 exports.addDailyGeneration = async (req, res) => {
     try {
         const { site, date, dailyGeneration } = req.body;
-
-        // We could check uniqueness for date+site if needed, or just insert
-        // Ideally we might want one entry per day per site, so let's try to update if exists
-        // But the schema didn't enforce valid uniqueness other than date format. 
-        // I'll upsert based on date (YYYY-MM-DD handled by setter/query)
 
         // Construct a date query that matches the day (00:00:00)
         const checkDate = new Date(date);
@@ -67,5 +74,44 @@ exports.addDailyGeneration = async (req, res) => {
 
     } catch (err) {
         res.status(400).json({ message: err.message });
+    }
+};
+
+// PUT /api/daily-generation/:id
+// Update an existing daily generation record
+exports.updateDailyGeneration = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { dailyGeneration, date } = req.body;
+
+        const record = await DailyGeneration.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+
+        if (dailyGeneration !== undefined) record.dailyGeneration = dailyGeneration;
+        if (date !== undefined) record.date = date;
+
+        await record.save();
+        res.json(record);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+// DELETE /api/daily-generation/:id
+// Delete a daily generation record
+exports.deleteDailyGeneration = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const record = await DailyGeneration.findByIdAndDelete(id);
+
+        if (!record) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+
+        res.json({ message: 'Record deleted successfully', id });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 };
