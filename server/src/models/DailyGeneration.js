@@ -7,10 +7,10 @@ const dailyGenerationSchema = new Schema({
         type: Date,
         required: true,
         // Ensure date is stored as YYYY-MM-DD (00:00:00 time)
+        // Ensure date is stored as UTC Midnight
         set: (d) => {
             const date = new Date(d);
-            date.setHours(0, 0, 0, 0);
-            return date;
+            return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
         }
     },
     dailyGeneration: { type: Number, required: true }

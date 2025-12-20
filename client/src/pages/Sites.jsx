@@ -78,14 +78,14 @@ const Sites = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Manage Sites</h1>
                     <p className="text-muted-foreground">Add or update solar plant installation details.</p>
                 </div>
                 <button
                     onClick={() => setIsFormOpen(true)}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-all font-medium border border-primary/20 shadow-lg shadow-primary/10"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-all font-medium border border-primary/20 shadow-lg shadow-primary/10"
                 >
                     <Plus size={20} /> Add New Site
                 </button>
@@ -97,55 +97,57 @@ const Sites = () => {
                     statusMsg.type === 'success' ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-destructive/10 border-destructive/20 text-destructive"
                 )}>
                     {statusMsg.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-                    <span className="font-medium">{statusMsg.msg}</span>
+                    <span className="font-medium text-sm sm:text-base">{statusMsg.msg}</span>
                 </div>
             )}
 
             {/* Sites Table */}
             <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
-                <table className="w-full text-left">
-                    <thead className="bg-muted/50 border-b">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site Name</th>
-                            <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site No.</th>
-                            <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Capacity (kWp)</th>
-                            <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                        {sites.length === 0 ? (
+                <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left min-w-[600px] sm:min-w-0">
+                        <thead className="bg-muted/50 border-b">
                             <tr>
-                                <td colSpan="4" className="px-6 py-12 text-center text-muted-foreground italic">No sites found. Add your first site to get started.</td>
+                                <th className="px-4 sm:px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site Name</th>
+                                <th className="px-4 sm:px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site No.</th>
+                                <th className="px-4 sm:px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Capacity (kWp)</th>
+                                <th className="px-4 sm:px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
                             </tr>
-                        ) : (
-                            sites.map((site) => (
-                                <tr key={site._id} className="hover:bg-muted/30 transition-colors">
-                                    <td className="px-6 py-4 font-medium">{site.siteName}</td>
-                                    <td className="px-6 py-4 text-muted-foreground">{site.siteNumber}</td>
-                                    <td className="px-6 py-4">
-                                        <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-sm font-bold border border-primary/20">
-                                            {site.capacity} kWp
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right space-x-2">
-                                        <button
-                                            onClick={() => handleEdit(site)}
-                                            className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => { if (confirm('Delete this site?')) deleteMutation.mutate(site._id) }}
-                                            className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors border border-transparent hover:border-destructive/20"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
+                        </thead>
+                        <tbody className="divide-y">
+                            {sites.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" className="px-6 py-12 text-center text-muted-foreground italic">No sites found. Add your first site to get started.</td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                sites.map((site) => (
+                                    <tr key={site._id} className="hover:bg-muted/30 transition-colors">
+                                        <td className="px-4 sm:px-6 py-4 font-medium text-sm sm:text-base">{site.siteName}</td>
+                                        <td className="px-4 sm:px-6 py-4 text-muted-foreground text-sm sm:text-base">{site.siteNumber}</td>
+                                        <td className="px-4 sm:px-6 py-4">
+                                            <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-[10px] sm:text-sm font-bold border border-primary/20">
+                                                {site.capacity} kWp
+                                            </span>
+                                        </td>
+                                        <td className="px-4 sm:px-6 py-4 text-right space-x-2">
+                                            <button
+                                                onClick={() => handleEdit(site)}
+                                                className="p-1.5 sm:p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
+                                            >
+                                                <Pencil size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => { if (confirm('Delete this site?')) deleteMutation.mutate(site._id) }}
+                                                className="p-1.5 sm:p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors border border-transparent hover:border-destructive/20"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Modal Form */}

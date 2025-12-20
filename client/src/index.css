@@ -89,3 +89,140 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Premium Chart Brush Styling */
+.recharts-brush-traveller {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+}
+
+.recharts-brush-slide {
+  fill-opacity: 0.1 !important;
+  cursor: grab;
+}
+
+.recharts-brush-slide:active {
+  cursor: grabbing;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --- High-Fidelity Solar Calendar System --- */
+.solar-calendar {
+  --rdp-cell-size: 42px;
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--primary) / 0.1);
+  margin: 0;
+  color: hsl(var(--foreground));
+}
+
+/* Base Day Styling */
+.rdp-day {
+  font-weight: 600 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 12px !important;
+  background-color: transparent !important;
+  /* Ensure no default white */
+}
+
+.dark .solar-calendar .rdp-day {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .solar-calendar .rdp-day_outside {
+  color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Selection Range - Critical High-Contrast */
+.rdp-day_selected:not(.rdp-day_outside) {
+  background-color: hsl(var(--primary)) !important;
+  color: white !important;
+  font-weight: 900 !important;
+  box-shadow: 0 8px 16px -4px hsl(var(--primary) / 0.5);
+  z-index: 10;
+}
+
+.rdp-day_range_middle:not(.rdp-day_outside) {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  color: hsl(var(--primary)) !important;
+  border-radius: 0 !important;
+}
+
+.dark .rdp-day_range_middle:not(.rdp-day_outside) {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: white !important;
+}
+
+.dark .rdp-day_range_start:not(.rdp-day_outside),
+.dark .rdp-day_range_end:not(.rdp-day_outside) {
+  background-color: hsl(var(--primary)) !important;
+  color: white !important;
+}
+
+/* Cleanup any residual white backgrounds from RDP defaults */
+.dark .rdp-day_selected {
+  background-color: hsl(var(--primary)) !important;
+}
+
+.dark .rdp-day:not(.rdp-day_selected) {
+  background-image: none !important;
+}
+
+/* Range Continuity Fix */
+.rdp-day_range_start {
+  border-radius: 12px 0 0 12px !important;
+}
+
+.rdp-day_range_end {
+  border-radius: 0 12px 12px 0 !important;
+}
+
+.rdp-day_range_start.rdp-day_range_end {
+  border-radius: 12px !important;
+}
+
+/* Interactive Hover States */
+.rdp-day:hover:not(.rdp-day_selected) {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  color: hsl(var(--primary)) !important;
+  transform: scale(1.05);
+}
+
+/* Headers & Navigation */
+.rdp-caption_label {
+  font-feature-settings: "tnum";
+  letter-spacing: 0.1em;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+  padding: 8px 16px;
+  background: hsl(var(--muted)/0.5);
+  border-radius: 99px;
+}
+
+.rdp-head_cell {
+  color: hsl(var(--muted-foreground)) !important;
+  font-weight: 800 !important;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  padding-bottom: 12px !important;
+}
+
+.rdp-nav_button {
+  color: hsl(var(--foreground)) !important;
+  opacity: 0.6;
+  border: 1px solid hsl(var(--border));
+  background: transparent !important;
+}
+
+.rdp-nav_button:hover {
+  opacity: 1;
+  background: hsl(var(--muted)) !important;
+  border-color: hsl(var(--primary)/0.5);
+}

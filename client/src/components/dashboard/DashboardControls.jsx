@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
 import { ChevronDown, Calendar, MapPin, Search } from 'lucide-react';
 import clsx from 'clsx';
+import DateRangePicker from '../ui/DateRangePicker';
 
 const DashboardControls = ({
     selectedSite, onSiteChange,
@@ -20,9 +21,9 @@ const DashboardControls = ({
     const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
     return (
-        <div className="flex flex-col lg:flex-row gap-4 bg-card p-4 rounded-2xl border shadow-lg shadow-primary/5">
+        <div className="flex flex-col lg:flex-row flex-wrap gap-4 bg-card p-4 rounded-2xl border shadow-lg shadow-primary/5">
             {/* Site Picker */}
-            <div className="relative min-w-[220px]">
+            <div className="relative min-w-[220px] flex-1 lg:flex-none">
                 <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block flex items-center gap-1.5 ml-1">
                     <MapPin size={10} className="text-primary" />
                     Solar Installation
@@ -72,7 +73,7 @@ const DashboardControls = ({
                 </div>
 
                 {viewMode === 'year' ? (
-                    <div className="relative min-w-[140px] w-full sm:w-auto">
+                    <div className="relative min-w-[140px] w-full sm:w-auto flex-1 sm:flex-none">
                         <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block flex items-center gap-1.5 ml-1">
                             Current Period
                         </label>
@@ -80,7 +81,7 @@ const DashboardControls = ({
                             <select
                                 value={selectedYear}
                                 onChange={(e) => onYearChange(parseInt(e.target.value))}
-                                className="w-full appearance-none bg-muted/30 border border-muted-foreground/10 px-4 py-3 rounded-xl pr-10 focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all font-bold hover:bg-muted/50"
+                                className="w-full appearance-none bg-muted/30 border border-muted-foreground/10 px-4 py-3 rounded-xl pr-10 focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all font-bold hover:bg-muted/50 cursor-pointer"
                             >
                                 {years.map(year => (
                                     <option key={year} value={year}>{year} - {year + 1}</option>
@@ -90,25 +91,15 @@ const DashboardControls = ({
                         </div>
                     </div>
                 ) : (
-                    <div className="flex gap-3 w-full sm:w-auto">
-                        <div className="relative flex-1 sm:w-40">
-                            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block ml-1">From Date</label>
-                            <input
-                                type="date"
-                                value={dateRange.start}
-                                onChange={e => onDateRangeChange({ ...dateRange, start: e.target.value })}
-                                className="w-full bg-muted/30 border border-muted-foreground/10 px-3 py-2.5 rounded-xl focus:ring-2 focus:ring-primary/40 outline-none font-medium appearance-none"
-                            />
-                        </div>
-                        <div className="relative flex-1 sm:w-40">
-                            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block ml-1">To Date</label>
-                            <input
-                                type="date"
-                                value={dateRange.end}
-                                onChange={e => onDateRangeChange({ ...dateRange, end: e.target.value })}
-                                className="w-full bg-muted/30 border border-muted-foreground/10 px-3 py-2.5 rounded-xl focus:ring-2 focus:ring-primary/40 outline-none font-medium appearance-none"
-                            />
-                        </div>
+                    <div className="flex-1 w-full sm:w-auto">
+                        <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1.5 block flex items-center gap-1.5 ml-1">
+                            Range Intelligence
+                        </label>
+                        <DateRangePicker
+                            range={dateRange}
+                            onChange={onDateRangeChange}
+                            containerClassName="w-full"
+                        />
                     </div>
                 )}
             </div>

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv-safe');
-const { Site, BuildGeneration, DailyGeneration } = require('./models');
+const { Site, BuildGeneration, DailyGeneration, User, Alert } = require('./models');
 
 dotenv.config({ path: './.env' });
 
@@ -20,6 +20,17 @@ const seed = async () => {
         await Site.deleteMany({});
         await BuildGeneration.deleteMany({});
         await DailyGeneration.deleteMany({});
+        await User.deleteMany({});
+        await Alert.deleteMany({});
+
+        // 0. Create Enterprise Users
+        console.log('Generating Enterprise Personnel...');
+        await User.create([
+            { username: 'admin', password: 'admin123', role: 'ADMIN' },
+            { username: 'op', password: 'op123', role: 'OPERATOR' },
+            { username: 'viewer', password: 'viewer123', role: 'VIEWER' }
+        ]);
+
 
         // 1. Create Dynamic Sites
         const siteConfigs = [
@@ -87,7 +98,7 @@ const seed = async () => {
 
                         logs.push({
                             site: site._id,
-                            date: new Date(currentDate),
+                            date: new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())),
                             dailyGeneration: parseFloat(actualGen)
                         });
                         currentDate.setDate(currentDate.getDate() + 1);
@@ -96,6 +107,25 @@ const seed = async () => {
                     console.log(` ✅ Inserted ${logs.length} dynamic logs for ${site.siteName}.`);
                 }
             }
+        }
+
+        // 3. Generate Sample Alerts for Realism
+        console.log('Seeding System Alerts...');
+        if (sites.length > 0) {
+            await Alert.create([
+                {
+                    site: sites[0]._id,
+                    severity: 'CRITICAL',
+                    message: 'Inverter Group B Offline - Zero production detected on sub-meter 04.',
+                    type: 'EQUIPMENT'
+                },
+                {
+                    site: sites[0]._id,
+                    severity: 'WARNING',
+                    message: 'Dust accumulation detected - PR dropped below 80% for 3 consecutive days.',
+                    type: 'PERFORMANCE'
+                }
+            ]);
         }
 
         console.log('\n🚀 ALL DYNAMIC DATA GENERATED SUCCESSFULLY!');

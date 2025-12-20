@@ -97,18 +97,18 @@ const DataLogs = () => {
                     <p className="text-muted-foreground">Manage production targets and daily generation logs.</p>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-2 sm:gap-4 w-full md:w-auto">
                     <select
                         value={selectedSite}
                         onChange={e => setSelectedSite(e.target.value)}
-                        className="bg-card border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
+                        className="flex-1 md:flex-none bg-card border px-3 sm:px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all text-xs sm:text-sm"
                     >
                         {sites.map(s => <option key={s._id} value={s._id}>{s.siteName}</option>)}
                     </select>
                     <select
                         value={selectedYear}
                         onChange={e => setSelectedYear(parseInt(e.target.value))}
-                        className="bg-card border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
+                        className="flex-1 md:flex-none bg-card border px-3 sm:px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all text-xs sm:text-sm"
                     >
                         {years.map(y => <option key={y} value={y}>{y} - {y + 1}</option>)}
                     </select>
@@ -126,24 +126,24 @@ const DataLogs = () => {
             )}
 
             <div className="bg-card border rounded-2xl overflow-hidden shadow-sm">
-                <div className="flex border-b bg-muted/30">
+                <div className="flex overflow-x-auto no-scrollbar border-b bg-muted/30">
                     <button
                         onClick={() => setActiveTab('targets')}
                         className={clsx(
-                            "px-6 py-4 font-semibold flex items-center gap-2 transition-all",
+                            "flex-1 sm:flex-none px-4 sm:px-6 py-4 font-semibold flex items-center justify-center sm:justify-start gap-2 transition-all whitespace-nowrap text-xs sm:text-base",
                             activeTab === 'targets' ? "text-primary border-b-2 border-primary bg-background" : "text-muted-foreground hover:text-foreground"
                         )}
                     >
-                        <Target size={18} /> Monthly Targets
+                        <Target size={18} /> <span className="hidden xs:inline">Monthly</span> Targets
                     </button>
                     <button
                         onClick={() => setActiveTab('daily')}
                         className={clsx(
-                            "px-6 py-4 font-semibold flex items-center gap-2 transition-all",
+                            "flex-1 sm:flex-none px-4 sm:px-6 py-4 font-semibold flex items-center justify-center sm:justify-start gap-2 transition-all whitespace-nowrap text-xs sm:text-base",
                             activeTab === 'daily' ? "text-primary border-b-2 border-primary bg-background" : "text-muted-foreground hover:text-foreground"
                         )}
                     >
-                        <Zap size={18} /> Daily Generation Logs
+                        <Zap size={18} /> <span className="hidden xs:inline">Daily</span> Logs
                     </button>
                 </div>
 

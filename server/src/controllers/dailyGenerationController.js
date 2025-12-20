@@ -1,4 +1,4 @@
-const { DailyGeneration } = require('../models');
+const { DailyGeneration, BuildGeneration, Alert } = require('../models');
 
 // GET /api/daily-generation/:siteId
 exports.getDailyGeneration = async (req, res) => {
@@ -28,14 +28,43 @@ exports.addDailyGeneration = async (req, res) => {
 
         const existing = await DailyGeneration.findOne({ site, date: checkDate });
 
+        let record;
         if (existing) {
             existing.dailyGeneration = dailyGeneration;
-            await existing.save();
-            res.status(200).json(existing);
+            record = await existing.save();
+            res.status(200).json(record);
         } else {
-            const newGen = await DailyGeneration.create({ site, date, dailyGeneration });
-            res.status(201).json(newGen);
+            record = await DailyGeneration.create({ site, date, dailyGeneration });
+            res.status(201).json(record);
         }
+
+        // --- ENTERPRISE ALERT TRIGGER ---
+        try {
+            const entryDate = new Date(date);
+            const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            const monthKey = monthNames[entryDate.getMonth()];
+            const year = entryDate.getFullYear();
+
+            const targetRecord = await BuildGeneration.findOne({ site, year });
+            if (targetRecord) {
+                const monthlyTarget = targetRecord[monthKey] || 0;
+                const daysInMonth = new Date(year, entryDate.getMonth() + 1, 0).getDate();
+                const dailyTarget = monthlyTarget / daysInMonth;
+                const pr = (dailyGeneration / dailyTarget) * 100;
+
+                if (pr < 75) {
+                    await Alert.create({
+                        site,
+                        severity: pr < 50 ? 'CRITICAL' : 'WARNING',
+                        message: `Underperformance detected: PR is ${pr.toFixed(1)}% (Target: ${dailyTarget.toFixed(1)} units, Actual: ${dailyGeneration} units).`,
+                        type: 'PERFORMANCE'
+                    });
+                }
+            }
+        } catch (alertErr) {
+            console.error('Failed to trigger alert logic:', alertErr);
+        }
+
     } catch (err) {
         res.status(400).json({ message: err.message });
     }

@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import GenerationChart from '../components/dashboard/GenerationChart';
 import DashboardControls from '../components/dashboard/DashboardControls';
+import AlertsPanel from '../components/dashboard/AlertsPanel';
 import api from '../services/api';
-import { Loader2, AlertCircle, RefreshCcw, CalendarClock } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCcw, CalendarClock, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
     const [selectedSite, setSelectedSite] = useState('');
@@ -23,10 +24,13 @@ const Dashboard = () => {
 
     const sites = sitesResult.data || [];
 
-    // Auto-select first site
+    // Auto-select first site or validate selection
     useEffect(() => {
-        if (sites.length > 0 && !selectedSite) {
-            setSelectedSite(sites[0]._id);
+        if (sites.length > 0) {
+            const isValid = sites.find(s => s._id === selectedSite);
+            if (!selectedSite || !isValid) {
+                setSelectedSite(sites[0]._id);
+            }
         }
     }, [sites, selectedSite]);
 
@@ -73,6 +77,7 @@ const Dashboard = () => {
     }
 
     const chartData = data?.data || [];
+    const forecastData = data?.forecast || [];
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -91,6 +96,17 @@ const Dashboard = () => {
                         </p>
                     </div>
                 </div>
+
+                {/* SMART INSIGHT (Predictive) */}
+                {forecastData.length > 0 && (
+                    <div className="hidden 2xl:flex items-center gap-4 bg-primary/5 border border-primary/10 px-6 py-3 rounded-2xl animate-pulse">
+                        <TrendingUp size={20} className="text-primary" />
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-primary tracking-widest">7-Day Forecast</p>
+                            <p className="text-xs font-bold whitespace-nowrap">Expect ~{(forecastData.reduce((a, b) => a + b.actual, 0) / 1000).toFixed(1)}MWh Production</p>
+                        </div>
+                    </div>
+                )}
                 <DashboardControls
                     selectedSite={selectedSite}
                     onSiteChange={setSelectedSite}
@@ -112,9 +128,16 @@ const Dashboard = () => {
                     <p className="text-muted-foreground max-w-sm mx-auto">Please select a solar installation from the dropdown menu to initialize monitoring.</p>
                 </div>
             ) : (
-                <div className="space-y-8">
-                    {data && <SummaryCards data={chartData} />}
-                    {data && <GenerationChart data={chartData} />}
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                    <div className="xl:col-span-9 space-y-8">
+                        {data && <SummaryCards data={chartData} />}
+                        {data && <GenerationChart data={chartData} forecast={forecastData} />}
+                    </div>
+                    <div className="xl:col-span-3 space-y-8">
+                        <div className="bg-card border-2 border-muted-foreground/10 rounded-[2rem] p-6 shadow-xl sticky top-8">
+                            <AlertsPanel />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
