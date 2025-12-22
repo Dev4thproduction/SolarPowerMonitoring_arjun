@@ -1,5 +1,11 @@
 const jwt = require('jsonwebtoken');
 
+// Validate JWT_SECRET at startup
+if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
+    process.exit(1);
+}
+
 exports.protect = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -8,7 +14,7 @@ exports.protect = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret_enterprisesteel');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
     } catch (err) {

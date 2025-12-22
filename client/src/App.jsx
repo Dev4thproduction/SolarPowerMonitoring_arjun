@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Sites from './pages/Sites';
@@ -27,36 +28,39 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="solar-theme">
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="sites" element={
-                  <ProtectedRoute allowedRoles={['ADMIN']}>
-                    <Sites />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" storageKey="solar-theme">
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <MainLayout />
                   </ProtectedRoute>
-                } />
-                <Route path="logs" element={
-                  <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-                    <DataLogs />
-                  </ProtectedRoute>
-                } />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="sites" element={
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                      <Sites />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="logs" element={
+                    <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
+                      <DataLogs />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
 export default App;
+

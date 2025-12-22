@@ -16,7 +16,7 @@ const dailyGenerationSchema = new Schema({
     dailyGeneration: { type: Number, required: true }
 }, { timestamps: true });
 
-// Performance Optimization: Compound Index for fast range queries
-dailyGenerationSchema.index({ site: 1, date: 1 });
+// Performance Optimization: Unique Compound Index prevents duplicates and enables fast range queries
+dailyGenerationSchema.index({ site: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('DailyGeneration', dailyGenerationSchema);
