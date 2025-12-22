@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-// Validate JWT_SECRET at startup
-if (!process.env.JWT_SECRET) {
+// Validate JWT_SECRET at startup (skip in test environment)
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
     console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
     process.exit(1);
 }
