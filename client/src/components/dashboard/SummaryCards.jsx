@@ -49,7 +49,9 @@ const SummaryCards = ({ data }) => {
         if (target > 0) pr = (actual / target) * 100;
 
         let s = 'Poor';
-        if (pr >= 90) s = 'Excellent';
+        if (target === 0) s = 'No Targets Set';
+        else if (actual === 0) s = 'Awaiting Data';
+        else if (pr >= 90) s = 'Excellent';
         else if (pr >= 80) s = 'Good';
 
         return { totalActual: actual, totalTarget: target, overallPR: pr, status: s };

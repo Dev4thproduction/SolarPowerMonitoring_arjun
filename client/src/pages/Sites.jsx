@@ -66,7 +66,11 @@ const Sites = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const payload = { ...formData, capacity: parseFloat(formData.capacity) };
+        const payload = {
+            ...formData,
+            siteNumber: parseInt(formData.siteNumber),
+            capacity: parseFloat(formData.capacity)
+        };
         if (editingSite) {
             updateMutation.mutate({ id: editingSite._id, data: payload });
         } else {

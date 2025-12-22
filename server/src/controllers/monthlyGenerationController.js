@@ -91,3 +91,76 @@ exports.deleteMonthlyGeneration = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+// POST /api/monthly-generation/bulk-sync
+exports.bulkSyncMonthlyGeneration = async (req, res) => {
+    try {
+        const { site, months } = req.body;
+
+        if (!site || !months || !Array.isArray(months) || months.length === 0) {
+            return res.status(400).json({ message: 'Invalid input. Requires site and months array.' });
+        }
+
+        const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+        // Prepare bulk operations
+        const bulkOps = await Promise.all(months.map(async (month) => {
+            let performanceRatio = 0;
+
+            // Try to get target from BuildGeneration for PR calculation
+            const buildGen = await BuildGeneration.findOne({ site, year: month.year });
+            if (buildGen && buildGen[monthKeys[month.month]]) {
+                const target = buildGen[monthKeys[month.month]];
+                performanceRatio = (month.totalGeneration / target) * 100;
+            }
+
+            return {
+                updateOne: {
+                    filter: { site, year: month.year, month: month.month },
+                    update: {
+                        $set: {
+                            site,
+                            year: month.year,
+                            month: month.month,
+                            totalGeneration: month.totalGeneration,
+                            performanceRatio,
+                            avgDailyGeneration: month.avgDailyGeneration || 0,
+                            daysOperational: month.daysOperational || 0,
+                            notes: month.notes || 'Auto-synced from daily records'
+                        }
+                    },
+                    upsert: true
+                }
+            };
+        }));
+
+        const result = await MonthlyGeneration.bulkWrite(bulkOps, { ordered: false });
+
+        res.status(200).json({
+            message: 'Bulk sync completed',
+            matched: result.matchedCount,
+            upserted: result.upsertedCount,
+            modified: result.modifiedCount,
+            total: months.length
+        });
+    } catch (err) {
+        console.error('Bulk sync error:', err);
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// GET /api/monthly-generation/all-sites
+exports.getAllMonthlyGeneration = async (req, res) => {
+    try {
+        const { year } = req.query;
+        let query = {};
+
+        if (year) {
+            query.year = parseInt(year);
+        }
+
+        const data = await MonthlyGeneration.find(query).sort({ site: 1, year: 1, month: 1 });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

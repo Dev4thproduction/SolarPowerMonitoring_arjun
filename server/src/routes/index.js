@@ -4,6 +4,7 @@ const router = express.Router();
 const siteController = require('../controllers/siteController');
 const buildGenerationController = require('../controllers/buildGenerationController');
 const dailyGenerationController = require('../controllers/dailyGenerationController');
+const monthlyGenerationController = require('../controllers/monthlyGenerationController');
 const dashboardController = require('../controllers/dashboardController');
 const authController = require('../controllers/authController');
 
@@ -24,14 +25,26 @@ router.put('/sites/:id', protect, restrictTo('ADMIN'), validate(updateSiteSchema
 router.delete('/sites/:id', protect, restrictTo('ADMIN'), siteController.deleteSite);
 
 // Build Generation Routes
+router.get('/build-generation/all', protect, buildGenerationController.getAllBuildGeneration);
 router.get('/build-generation/:siteId', protect, buildGenerationController.getBuildGeneration);
 router.post('/build-generation', protect, restrictTo('ADMIN', 'OPERATOR'), validate(buildGenerationSchema), buildGenerationController.createOrUpdateBuildGeneration);
 
 // Daily Generation Routes
+router.get('/daily-generation/all-sites', protect, dailyGenerationController.getAllDailyGeneration);
 router.get('/daily-generation/:siteId', protect, dailyGenerationController.getDailyGeneration);
 router.post('/daily-generation', protect, restrictTo('ADMIN', 'OPERATOR'), validate(dailyGenerationSchema), dailyGenerationController.addDailyGeneration);
+router.post('/daily-generation/bulk-import', protect, restrictTo('ADMIN', 'OPERATOR'), dailyGenerationController.bulkImportDailyGeneration);
 router.put('/daily-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), dailyGenerationController.updateDailyGeneration);
 router.delete('/daily-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), dailyGenerationController.deleteDailyGeneration);
+
+
+// Monthly Generation Routes
+router.get('/monthly-generation/all-sites', protect, monthlyGenerationController.getAllMonthlyGeneration);
+router.get('/monthly-generation/:siteId', protect, monthlyGenerationController.getMonthlyGeneration);
+router.post('/monthly-generation', protect, restrictTo('ADMIN', 'OPERATOR'), monthlyGenerationController.addMonthlyGeneration);
+router.post('/monthly-generation/bulk-sync', protect, restrictTo('ADMIN', 'OPERATOR'), monthlyGenerationController.bulkSyncMonthlyGeneration);
+router.put('/monthly-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), monthlyGenerationController.updateMonthlyGeneration);
+router.delete('/monthly-generation/:id', protect, restrictTo('ADMIN', 'OPERATOR'), monthlyGenerationController.deleteMonthlyGeneration);
 
 // Dashboard Routes
 router.get('/dashboard', protect, dashboardController.getDashboardData);

@@ -23,6 +23,28 @@ exports.getDailyGeneration = async (req, res) => {
     }
 };
 
+// GET /api/daily-generation/all-sites
+exports.getAllDailyGeneration = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        let query = {};
+
+        // Add date range filter if provided
+        if (startDate && endDate) {
+            query.date = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
+
+        const data = await DailyGeneration.find(query).sort({ date: -1 });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 // POST /api/daily-generation
 // Expects: { site: ObjectId, date: Date, dailyGeneration: number }
 exports.addDailyGeneration = async (req, res) => {
@@ -112,6 +134,53 @@ exports.deleteDailyGeneration = async (req, res) => {
 
         res.json({ message: 'Record deleted successfully', id });
     } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// POST /api/daily-generation/bulk-import
+// Bulk import daily generation records for fast insertion
+// Expects: { site: ObjectId, records: [{ date: Date, dailyGeneration: number }] }
+exports.bulkImportDailyGeneration = async (req, res) => {
+    try {
+        const { site, records } = req.body;
+
+        if (!site || !records || !Array.isArray(records) || records.length === 0) {
+            return res.status(400).json({ message: 'Invalid input. Requires site and records array.' });
+        }
+
+        // Prepare bulk operations using upsert (update or insert)
+        const bulkOps = records.map(record => {
+            const checkDate = new Date(record.date);
+            checkDate.setUTCHours(0, 0, 0, 0);
+
+            return {
+                updateOne: {
+                    filter: { site, date: checkDate },
+                    update: {
+                        $set: {
+                            site,
+                            date: checkDate,
+                            dailyGeneration: record.dailyGeneration
+                        }
+                    },
+                    upsert: true
+                }
+            };
+        });
+
+        // Execute bulk write for maximum speed
+        const result = await DailyGeneration.bulkWrite(bulkOps, { ordered: false });
+
+        res.status(200).json({
+            message: 'Bulk import completed',
+            matched: result.matchedCount,
+            upserted: result.upsertedCount,
+            modified: result.modifiedCount,
+            total: records.length
+        });
+    } catch (err) {
+        console.error('Bulk import error:', err);
         res.status(500).json({ message: err.message });
     }
 };

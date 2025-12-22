@@ -11,6 +11,19 @@ exports.getBuildGeneration = async (req, res) => {
     }
 };
 
+// GET /api/build-generation/all
+exports.getAllBuildGeneration = async (req, res) => {
+    try {
+        const { year } = req.query;
+        let query = {};
+        if (year) query.year = parseInt(year);
+        const data = await BuildGeneration.find(query);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 // POST /api/build-generation
 // Expects: { site: ObjectId, year: Number, ...months }
 exports.createOrUpdateBuildGeneration = async (req, res) => {

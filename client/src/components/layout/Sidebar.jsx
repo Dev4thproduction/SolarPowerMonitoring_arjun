@@ -20,7 +20,7 @@ const Sidebar = () => {
         },
         {
             icon: BarChart3,
-            label: 'Data Entry',
+            label: 'Generation Logs',
             to: '/logs',
             roles: ['ADMIN', 'OPERATOR']
         },
