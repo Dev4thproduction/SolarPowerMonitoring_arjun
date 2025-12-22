@@ -1,16 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
 import ErrorBoundary from './components/ErrorBoundary';
-// Pages
-import Dashboard from './pages/Dashboard';
-import Sites from './pages/Sites';
-import DataLogs from './pages/DataLogs';
-import Login from './pages/Login';
-import Settings from './pages/Settings';
 import { Loader2 } from 'lucide-react';
+
+// Lazy load pages for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Sites = lazy(() => import('./pages/Sites'));
+const DataLogs = lazy(() => import('./pages/DataLogs'));
+const Login = lazy(() => import('./pages/Login'));
+const Settings = lazy(() => import('./pages/Settings'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <Loader2 className="animate-spin text-primary" size={32} />
+  </div>
+);
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -33,27 +42,29 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="solar-theme">
           <AuthProvider>
             <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <MainLayout />
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<Dashboard />} />
-                  <Route path="sites" element={
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
-                      <Sites />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <MainLayout />
                     </ProtectedRoute>
-                  } />
-                  <Route path="logs" element={
-                    <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-                      <DataLogs />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-              </Routes>
+                  }>
+                    <Route index element={<Dashboard />} />
+                    <Route path="sites" element={
+                      <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <Sites />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="logs" element={
+                      <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
+                        <DataLogs />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="settings" element={<Settings />} />
+                  </Route>
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </AuthProvider>
         </ThemeProvider>
@@ -63,4 +74,3 @@ function App() {
 }
 
 export default App;
-
