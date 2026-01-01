@@ -7,6 +7,7 @@ const dailyGenerationController = require('../controllers/dailyGenerationControl
 const monthlyGenerationController = require('../controllers/monthlyGenerationController');
 const dashboardController = require('../controllers/dashboardController');
 const authController = require('../controllers/authController');
+const inverterSyncController = require('../controllers/inverterSyncController');
 
 const { protect, restrictTo } = require('../middleware/auth');
 
@@ -52,5 +53,10 @@ router.get('/dashboard', protect, dashboardController.getDashboardData);
 // Alert Routes
 router.get('/alerts', protect, dashboardController.getActiveAlerts);
 router.patch('/alerts/:id/resolve', protect, restrictTo('ADMIN', 'OPERATOR'), dashboardController.resolveAlert);
+
+// Inverter Sync Routes (for Inverter system integration)
+router.get('/inverter-sync/daily-generation', protect, inverterSyncController.getDailyGenerationForInverter);
+router.get('/inverter-sync/sites', protect, inverterSyncController.getSitesForInverter);
+router.post('/inverter-sync/import', protect, restrictTo('ADMIN', 'OPERATOR'), inverterSyncController.importInverterData);
 
 module.exports = router;

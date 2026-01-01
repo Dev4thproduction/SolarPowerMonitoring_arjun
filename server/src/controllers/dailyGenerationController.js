@@ -1,4 +1,5 @@
 const { DailyGeneration, BuildGeneration, Alert } = require('../models');
+const { parseFlexibleDate, getMonthKey } = require('../utils/dateUtils');
 
 // GET /api/daily-generation/:siteId
 exports.getDailyGeneration = async (req, res) => {
@@ -11,8 +12,8 @@ exports.getDailyGeneration = async (req, res) => {
         // Add date range filter if provided
         if (startDate && endDate) {
             query.date = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
+                $gte: parseFlexibleDate(startDate) || new Date(startDate),
+                $lte: parseFlexibleDate(endDate) || new Date(endDate)
             };
         }
 
@@ -33,8 +34,8 @@ exports.getAllDailyGeneration = async (req, res) => {
         // Add date range filter if provided
         if (startDate && endDate) {
             query.date = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
+                $gte: parseFlexibleDate(startDate) || new Date(startDate),
+                $lte: parseFlexibleDate(endDate) || new Date(endDate)
             };
         }
 
@@ -49,7 +50,7 @@ exports.getAllDailyGeneration = async (req, res) => {
 // Expects: { site: ObjectId, date: Date, dailyGeneration: number }
 exports.addDailyGeneration = async (req, res) => {
     try {
-        const { site, date, dailyGeneration } = req.body;
+        const { site, date, dailyGeneration, status } = req.body;
 
         // Construct a date query that matches the day (00:00:00)
         const checkDate = new Date(date);
@@ -60,24 +61,27 @@ exports.addDailyGeneration = async (req, res) => {
         let record;
         if (existing) {
             existing.dailyGeneration = dailyGeneration;
+            if (status !== undefined) existing.status = status;
             record = await existing.save();
             res.status(200).json(record);
         } else {
-            record = await DailyGeneration.create({ site, date, dailyGeneration });
+            record = await DailyGeneration.create({ site, date, dailyGeneration, status: status || 'draft' });
             res.status(201).json(record);
         }
 
         // --- ENTERPRISE ALERT TRIGGER ---
         try {
-            const entryDate = new Date(date);
-            const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-            const monthKey = monthNames[entryDate.getMonth()];
-            const year = entryDate.getFullYear();
+            // CRITICAL FIX: Use parseFlexibleDate to correctly parse DD-MM-YYYY format
+            // Otherwise "15-07-2024" might be parsed incorrectly (July becomes Jan, etc.)
+            const entryDate = parseFlexibleDate(date) || record.date;
+            const monthKey = getMonthKey(entryDate);
+            const year = entryDate.getUTCFullYear();
 
             const targetRecord = await BuildGeneration.findOne({ site, year });
             if (targetRecord) {
                 const monthlyTarget = targetRecord[monthKey] || 0;
-                const daysInMonth = new Date(year, entryDate.getMonth() + 1, 0).getDate();
+                const monthIndex = entryDate.getUTCMonth(); // 0-11
+                const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
                 const dailyTarget = monthlyTarget / daysInMonth;
                 const pr = (dailyGeneration / dailyTarget) * 100;
 
@@ -104,7 +108,7 @@ exports.addDailyGeneration = async (req, res) => {
 exports.updateDailyGeneration = async (req, res) => {
     try {
         const { id } = req.params;
-        const { dailyGeneration, date } = req.body;
+        const { dailyGeneration, date, status } = req.body;
 
         const record = await DailyGeneration.findById(id);
         if (!record) {
@@ -113,6 +117,7 @@ exports.updateDailyGeneration = async (req, res) => {
 
         if (dailyGeneration !== undefined) record.dailyGeneration = dailyGeneration;
         if (date !== undefined) record.date = date;
+        if (status !== undefined) record.status = status;
 
         await record.save();
         res.json(record);
@@ -151,8 +156,8 @@ exports.bulkImportDailyGeneration = async (req, res) => {
 
         // Prepare bulk operations using upsert (update or insert)
         const bulkOps = records.map(record => {
-            const checkDate = new Date(record.date);
-            checkDate.setUTCHours(0, 0, 0, 0);
+            // CRITICAL FIX: Use parseFlexibleDate to correctly parse DD-MM-YYYY format
+            const checkDate = parseFlexibleDate(record.date) || new Date(record.date);
 
             return {
                 updateOne: {
@@ -161,7 +166,8 @@ exports.bulkImportDailyGeneration = async (req, res) => {
                         $set: {
                             site,
                             date: checkDate,
-                            dailyGeneration: record.dailyGeneration
+                            dailyGeneration: record.dailyGeneration,
+                            status: record.status || 'draft'
                         }
                     },
                     upsert: true

@@ -14,7 +14,7 @@ const SEASONALITY = {
 const seed = async () => {
     try {
         console.log('Connecting to MongoDB for Dynamic Algorithmic Seeding...');
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI);
 
         console.log('Clearing existing records...');
         await Site.deleteMany({});

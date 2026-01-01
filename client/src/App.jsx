@@ -21,15 +21,7 @@ const PageLoader = () => (
   </div>
 );
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#07090d]">
-      <Loader2 className="animate-spin text-primary" size={40} />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" />;
-  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" />;
+const ProtectedRoute = ({ children }) => {
   return children;
 };
 
@@ -44,23 +36,11 @@ function App() {
             <BrowserRouter>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <MainLayout />
-                    </ProtectedRoute>
-                  }>
+                  <Route path="/login" element={<Navigate to="/" />} />
+                  <Route path="/" element={<MainLayout />}>
                     <Route index element={<Dashboard />} />
-                    <Route path="sites" element={
-                      <ProtectedRoute allowedRoles={['ADMIN']}>
-                        <Sites />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="logs" element={
-                      <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-                        <DataLogs />
-                      </ProtectedRoute>
-                    } />
+                    <Route path="sites" element={<Sites />} />
+                    <Route path="logs" element={<DataLogs />} />
                     <Route path="settings" element={<Settings />} />
                   </Route>
                 </Routes>

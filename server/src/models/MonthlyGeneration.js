@@ -11,7 +11,8 @@ const monthlyGenerationSchema = new Schema({
     peakGeneration: { type: Number, default: 0 },
     avgDailyGeneration: { type: Number, default: 0 },
     daysOperational: { type: Number, default: 0 },
-    notes: { type: String, default: '' }
+    notes: { type: String, default: '' },
+    status: { type: String, default: 'draft' }
 }, { timestamps: true });
 
 // Ensure one record per site per month per year

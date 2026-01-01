@@ -13,7 +13,8 @@ const dailyGenerationSchema = new Schema({
             return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
         }
     },
-    dailyGeneration: { type: Number, required: true }
+    dailyGeneration: { type: Number, required: true },
+    status: { type: String, default: 'draft' }
 }, { timestamps: true });
 
 // Performance Optimization: Unique Compound Index prevents duplicates and enables fast range queries

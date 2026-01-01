@@ -3,6 +3,84 @@ import api from '../../../services/api';
 import { MONTHS } from '../utils/constants';
 
 /**
+ * Parse date in various formats to a Date object
+ * Supports: DD-MM-YYYY, YYYY-MM-DD, DD/MM/YYYY, Excel serial numbers
+ */
+const parseFlexibleDate = (input) => {
+    if (!input) return null;
+
+    // Already a Date object
+    if (input instanceof Date) {
+        return isNaN(input.getTime()) ? null : input;
+    }
+
+    // Handle Excel serial number (number representing days since 1900)
+    if (typeof input === 'number') {
+        // Excel date serial number
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() + input * 24 * 60 * 60 * 1000);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    const str = String(input).trim();
+
+    // Try DD-MM-YYYY format
+    let match = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (match) {
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+            return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        }
+    }
+
+    // Try DD/MM/YYYY format
+    match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (match) {
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+            return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        }
+    }
+
+    // Try YYYY-MM-DD format (ISO)
+    match = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (match) {
+        const year = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const day = parseInt(match[3], 10);
+        return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    }
+
+    // Fallback to standard Date parsing
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+        return new Date(Date.UTC(
+            parsed.getUTCFullYear(),
+            parsed.getUTCMonth(),
+            parsed.getUTCDate(),
+            0, 0, 0, 0
+        ));
+    }
+
+    return null;
+};
+
+/**
+ * Format Date to DD-MM-YYYY string
+ */
+const formatDateDDMMYYYY = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '';
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const year = date.getUTCFullYear();
+    return `${day}-${month}-${year}`;
+};
+
+/**
  * Handle file import for both single-site and multi-site data
  * Supports daily logs and monthly matrix formats
  */
@@ -81,7 +159,8 @@ export const handleFileImport = async ({
                                         year: map.year,
                                         month: map.idx,
                                         totalGeneration: genVal,
-                                        notes: 'Imported from Portfolio Matrix'
+                                        notes: 'Imported from Portfolio Matrix',
+                                        status: 'draft'
                                     });
                                 }
                             }
@@ -166,12 +245,18 @@ export const handleFileImport = async ({
                 const dateVal = row['Date'] || row['date'] || row['DATE'] || Object.values(row)[0];
                 const genVal = row['Generation (kWh)'] || row['generation'] || row['Generation'] || row['kWh'] || row['Daily Generation'] || Object.values(row)[1];
 
-                if (dateVal && genVal) {
-                    const parsedDate = new Date(dateVal);
+                if (dateVal && genVal !== undefined && genVal !== '') {
+                    const parsedDate = parseFlexibleDate(dateVal);
                     const parsedGen = parseFloat(genVal);
-                    if (!isNaN(parsedDate.getTime()) && !isNaN(parsedGen)) {
-                        records.push({ date: parsedDate.toISOString().split('T')[0], dailyGeneration: parsedGen });
-                    } else { skippedCount++; }
+
+                    if (parsedDate && !isNaN(parsedGen)) {
+                        // Use DD-MM-YYYY format for consistency
+                        const formattedDate = formatDateDDMMYYYY(parsedDate);
+                        records.push({ date: formattedDate, dailyGeneration: parsedGen, status: 'draft' });
+                    } else {
+                        console.warn('Skipping row - invalid date or generation:', dateVal, genVal);
+                        skippedCount++;
+                    }
                 } else { skippedCount++; }
             }
 

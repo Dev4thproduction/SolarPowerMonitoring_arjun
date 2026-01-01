@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2, Pencil, Trash2, X, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatDateWithWeekday } from '../utils/dateUtils';
 
 /**
  * Daily Logs Table Component
@@ -35,6 +36,7 @@ const DailyLogsTable = ({
                         <tr>
                             <th className="px-4 py-3 text-left font-bold text-xs uppercase tracking-wider text-muted-foreground">Date</th>
                             <th className="px-4 py-3 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground">Generation (kWh)</th>
+                            <th className="px-4 py-3 text-center font-bold text-xs uppercase tracking-wider text-muted-foreground">Status</th>
                             <th className="px-4 py-3 text-center font-bold text-xs uppercase tracking-wider text-muted-foreground">Actions</th>
                         </tr>
                     </thead>
@@ -42,7 +44,7 @@ const DailyLogsTable = ({
                         {paginatedLogs.map((log) => (
                             <tr key={log._id} className="hover:bg-muted/30 transition-colors">
                                 <td className="px-4 py-3 font-medium">
-                                    {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {formatDateWithWeekday(log.date)}
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                     {editingId === log._id ? (
@@ -57,6 +59,9 @@ const DailyLogsTable = ({
                                     ) : (
                                         <span className="font-bold text-green-500">{log.dailyGeneration.toLocaleString()}</span>
                                     )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <span className="text-sm text-muted-foreground">{log.status || 'draft'}</span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     {editingId === log._id ? (

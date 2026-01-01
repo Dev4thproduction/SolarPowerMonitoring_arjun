@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { MONTHS, MONTH_NAMES } from './constants';
+import { formatDateDDMMYYYY } from './dateUtils';
 
 /**
  * Export data to Excel file
@@ -24,7 +25,7 @@ export const exportToXLSX = ({
     if (viewMode === 'daily') {
         const dailyExportData = dailyLogs.map(log => {
             const row = {
-                'Date': new Date(log.date).toLocaleDateString('en-US'),
+                'Date': formatDateDDMMYYYY(log.date),
                 'Generation (kWh)': log.dailyGeneration,
             };
 
@@ -166,7 +167,7 @@ export const exportToPDF = ({
 
         columns = ["Date", "Generation (kWh)"];
         data = dailyLogs.map(log => [
-            new Date(log.date).toLocaleDateString(),
+            formatDateDDMMYYYY(log.date),
             log.dailyGeneration.toLocaleString() + ' kWh'
         ]);
 

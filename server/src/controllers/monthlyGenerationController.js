@@ -19,7 +19,7 @@ exports.getMonthlyGeneration = async (req, res) => {
 // POST /api/monthly-generation
 exports.addMonthlyGeneration = async (req, res) => {
     try {
-        const { site, year, month, totalGeneration, targetGeneration, peakGeneration, avgDailyGeneration, daysOperational, notes } = req.body;
+        const { site, year, month, totalGeneration, targetGeneration, peakGeneration, avgDailyGeneration, daysOperational, notes, status } = req.body;
 
         // Calculate PR if target is provided
         let performanceRatio = 0;
@@ -48,7 +48,8 @@ exports.addMonthlyGeneration = async (req, res) => {
                 peakGeneration: peakGeneration || 0,
                 avgDailyGeneration: avgDailyGeneration || 0,
                 daysOperational: daysOperational || 0,
-                notes: notes || ''
+                notes: notes || '',
+                status: status || 'draft'
             },
             { upsert: true, new: true }
         );
@@ -125,7 +126,8 @@ exports.bulkSyncMonthlyGeneration = async (req, res) => {
                             performanceRatio,
                             avgDailyGeneration: month.avgDailyGeneration || 0,
                             daysOperational: month.daysOperational || 0,
-                            notes: month.notes || 'Auto-synced from daily records'
+                            notes: month.notes || 'Auto-synced from daily records',
+                            status: month.status || 'draft'
                         }
                     },
                     upsert: true
